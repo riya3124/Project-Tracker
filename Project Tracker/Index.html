@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Tracking Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #F4F6FB;
+      color: #1a1a2e;
+      padding: 2rem;
+      font-size: 14px;
+    }
+
+    .wrapper { max-width: 1100px; margin: 0 auto; }
+
+    /* TOP BAR */
+    .topbar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }
+    .topbar h1 { font-size: 22px; font-weight: 600; color: #1a1a2e; }
+    .topbar p  { font-size: 13px; color: #666; margin-top: 4px; }
+
+    /* STAT CARDS */
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 1.25rem; }
+    .stat  { background: #fff; border: 1px solid #e8eaf0; border-radius: 10px; padding: .9rem 1rem; }
+    .stat-lbl { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+    .stat-num { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .stat-num.g { color: #2e7d32; }
+    .stat-num.a { color: #f57f17; }
+    .stat-num.r { color: #c62828; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+    .toolbar input  { flex: 1; min-width: 160px; font-size: 13px; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a2e; }
+    .toolbar select { font-size: 13px; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a2e; }
+    .btn-add { font-size: 13px; height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #1565C0; background: #e3f2fd; color: #1565C0; cursor: pointer; font-weight: 600; }
+    .btn-add:hover { background: #bbdefb; }
+
+    /* ADD FORM */
+    .form-wrap { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1.1rem; }
+    .form-wrap h3 { font-size: 14px; font-weight: 600; margin-bottom: .85rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-grid input, .form-grid select { font-size: 13px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; color: #1a1a2e; width: 100%; }
+    .form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .form-row2 select { font-size: 13px; height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; color: #1a1a2e; width: 100%; }
+    .slider-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .slider-wrap label { font-size: 13px; color: #666; white-space: nowrap; }
+    .slider-wrap input[type=range] { flex: 1; accent-color: #1976D2; }
+    .slider-wrap span { font-size: 13px; font-weight: 600; min-width: 36px; }
+    .btn-save   { font-size: 13px; height: 34px; padding: 0 18px; border-radius: 8px; border: 1px solid #388E3C; background: #e8f5e9; color: #2e7d32; cursor: pointer; font-weight: 600; }
+    .btn-save:hover { background: #c8e6c9; }
+    .btn-cancel { font-size: 13px; height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid #ddd; background: transparent; color: #888; cursor: pointer; }
+
+    /* TABLE */
+    .table-wrap { background: #fff; border: 1px solid #e8eaf0; border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    thead th { font-size: 11px; font-weight: 600; color: #888; text-align: left; padding: 10px 12px; border-bottom: 1px solid #e8eaf0; background: #fafafa; text-transform: uppercase; letter-spacing: .4px; }
+    tbody tr { border-bottom: 1px solid #f0f0f5; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafbff; }
+    tbody td { font-size: 13px; color: #1a1a2e; padding: 11px 12px; vertical-align: middle; }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+    .dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .b-on   { background: #e8f5e9; color: #2e7d32; }
+    .b-at   { background: #fff8e1; color: #f57f17; }
+    .b-del  { background: #ffebee; color: #c62828; }
+    .b-done { background: #f5f5f5; color: #777; }
+    .b-plan { background: #e3f2fd; color: #1565C0; }
+    .risk-h { background: #ffebee; color: #c62828; font-size: 11px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+    .risk-m { background: #fff8e1; color: #f57f17; font-size: 11px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+    .risk-l { background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 3px 9px; border-radius: 99px; font-weight: 600; }
+
+    /* PROGRESS BAR */
+    .pbar      { height: 7px; background: #f0f0f5; border-radius: 99px; overflow: hidden; width: 100%; min-width: 70px; }
+    .pbar-fill { height: 100%; border-radius: 99px; }
+    .pbar-fill.hi  { background: #388E3C; }
+    .pbar-fill.mid { background: #F9A825; }
+    .pbar-fill.lo  { background: #D32F2F; }
+    .pct-lbl { font-size: 11px; color: #999; margin-top: 3px; }
+
+    /* DELETE BUTTON */
+    .btn-del-row { font-size: 11px; padding: 3px 9px; border-radius: 6px; border: 1px solid #ffcdd2; background: transparent; color: #c62828; cursor: pointer; }
+    .btn-del-row:hover { background: #ffebee; }
+
+    .overdue { color: #c62828; font-weight: 600; }
+    .empty { text-align: center; padding: 2.5rem; color: #bbb; font-size: 13px; }
+
+    footer { text-align: center; margin-top: 2rem; font-size: 11px; color: #bbb; padding-bottom: 1rem; }
+
+    @media(max-width:700px){
+      .stats { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-row2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="topbar">
+    <div>
+      <h1>Project Tracking Dashboard</h1>
+      <p>Coordinator: Riya Patil &nbsp;|&nbsp; Q2 2026</p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Total Projects</div><div class="stat-num" id="s-total">0</div></div>
+    <div class="stat"><div class="stat-lbl">On Track</div><div class="stat-num g" id="s-on">0</div></div>
+    <div class="stat"><div class="stat-lbl">At Risk</div><div class="stat-num a" id="s-at">0</div></div>
+    <div class="stat"><div class="stat-lbl">Delayed</div><div class="stat-num r" id="s-del">0</div></div>
+    <div class="stat"><div class="stat-lbl">Avg Completion</div><div class="stat-num" id="s-avg">0%</div></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search project or owner..." oninput="render()">
+    <select id="f-status" onchange="render()">
+      <option value="all">All Statuses</option>
+      <option>On Track</option>
+      <option>At Risk</option>
+      <option>Delayed</option>
+      <option>Completed</option>
+      <option>Planning</option>
+    </select>
+    <select id="f-risk" onchange="render()">
+      <option value="all">All Risks</option>
+      <option>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+    <button class="btn-add" onclick="toggleForm()">+ Add Project</button>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="form-wrap" id="add-form" style="display:none">
+    <h3>Add New Project</h3>
+    <div class="form-grid">
+      <input type="text"  id="f-name"     placeholder="Project name *">
+      <input type="text"  id="f-owner"    placeholder="Owner name *">
+      <input type="date"  id="f-deadline">
+    </div>
+    <div class="form-row2">
+      <select id="f-stat">
+        <option>Planning</option>
+        <option>On Track</option>
+        <option>At Risk</option>
+        <option>Delayed</option>
+        <option>Completed</option>
+      </select>
+      <select id="f-risk-inp">
+        <option>Low</option>
+        <option selected>Medium</option>
+        <option>High</option>
+      </select>
+    </div>
+    <div class="slider-wrap">
+      <label>Completion %</label>
+      <input type="range" min="0" max="100" step="1" value="0" id="f-pct"
+             oninput="document.getElementById('f-pct-lbl').textContent = this.value + '%'">
+      <span id="f-pct-lbl">0%</span>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-save"   onclick="saveProject()">Save Project</button>
+      <button class="btn-cancel" onclick="toggleForm()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:22%">Project</th>
+          <th style="width:13%">Owner</th>
+          <th style="width:12%">Deadline</th>
+          <th style="width:13%">Status</th>
+          <th style="width:10%">Risk</th>
+          <th style="width:20%">Completion</th>
+          <th style="width:10%"></th>
+        </tr>
+      </thead>
+      <tbody id="project-table"></tbody>
+    </table>
+  </div>
+
+  <footer>Project Tracking Dashboard &nbsp;|&nbsp; Riya Patil &nbsp;|&nbsp; Portfolio 2026</footer>
+
+</div>
+
+<script>
+  let showForm = false;
+  let projects = [
+    { id:1, name:"EduPortal Redesign",     owner:"Riya Patil",     deadline:"2026-06-02", status:"At Risk",   risk:"High",   pct:73  },
+    { id:2, name:"HR Onboarding App",       owner:"Arjun Kulkarni", deadline:"2026-05-20", status:"On Track",  risk:"Low",    pct:88  },
+    { id:3, name:"Inventory Management",    owner:"Sneha More",     deadline:"2026-07-15", status:"Planning",  risk:"Medium", pct:20  },
+    { id:4, name:"Client CRM Integration",  owner:"Vivek Desai",    deadline:"2026-04-30", status:"Delayed",   risk:"High",   pct:45  },
+    { id:5, name:"Mobile App Launch",       owner:"Pooja Rane",     deadline:"2026-06-30", status:"On Track",  risk:"Medium", pct:60  },
+    { id:6, name:"Admin Panel v2",          owner:"Riya Patil",     deadline:"2026-05-10", status:"Completed", risk:"Low",    pct:100 },
+  ];
+  let nextId = 7;
+
+  function toggleForm() {
+    showForm = !showForm;
+    document.getElementById('add-form').style.display = showForm ? 'block' : 'none';
+  }
+
+  function saveProject() {
+    const name  = document.getElementById('f-name').value.trim();
+    const owner = document.getElementById('f-owner').value.trim();
+    if (!name || !owner) { alert('Project name and owner are required.'); return; }
+    projects.unshift({
+      id:       nextId++,
+      name,
+      owner,
+      deadline: document.getElementById('f-deadline').value || '',
+      status:   document.getElementById('f-stat').value,
+      risk:     document.getElementById('f-risk-inp').value,
+      pct:      parseInt(document.getElementById('f-pct').value)
+    });
+    document.getElementById('f-name').value  = '';
+    document.getElementById('f-owner').value = '';
+    document.getElementById('f-deadline').value = '';
+    document.getElementById('f-pct').value   = 0;
+    document.getElementById('f-pct-lbl').textContent = '0%';
+    toggleForm();
+    render();
+  }
+
+  function deleteProject(id) {
+    if (confirm('Remove this project?')) {
+      projects = projects.filter(p => p.id !== id);
+      render();
+    }
+  }
+
+  function statusBadge(s) {
+    const cls = { 'On Track':'b-on','At Risk':'b-at','Delayed':'b-del','Completed':'b-done','Planning':'b-plan' };
+    const col = { 'On Track':'#2e7d32','At Risk':'#f57f17','Delayed':'#c62828','Completed':'#999','Planning':'#1565C0' };
+    return `<span class="badge ${cls[s]||'b-done'}"><span class="dot" style="background:${col[s]||'#999'}"></span>${s}</span>`;
+  }
+
+  function riskBadge(r) {
+    return r==='High'  ? `<span class="risk-h">High</span>`
+         : r==='Medium'? `<span class="risk-m">Medium</span>`
+         :               `<span class="risk-l">Low</span>`;
+  }
+
+  function pctClass(p) { return p >= 70 ? 'hi' : p >= 40 ? 'mid' : 'lo'; }
+
+  function isOverdue(d, status) {
+    return d && status !== 'Completed' && new Date(d) < new Date();
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' });
+  }
+
+  function render() {
+    const search = document.getElementById('search').value.toLowerCase();
+    const fs     = document.getElementById('f-status').value;
+    const fr     = document.getElementById('f-risk').value;
+
+    const filtered = projects.filter(p =>
+      (fs === 'all' || p.status === fs) &&
+      (fr === 'all' || p.risk   === fr) &&
+      (!search || p.name.toLowerCase().includes(search) || p.owner.toLowerCase().includes(search))
+    );
+
+    document.getElementById('s-total').textContent = projects.length;
+    document.getElementById('s-on').textContent    = projects.filter(p => p.status === 'On Track').length;
+    document.getElementById('s-at').textContent    = projects.filter(p => p.status === 'At Risk').length;
+    document.getElementById('s-del').textContent   = projects.filter(p => p.status === 'Delayed').length;
+    const avg = projects.length
+      ? Math.round(projects.reduce((a, p) => a + p.pct, 0) / projects.length)
+      : 0;
+    document.getElementById('s-avg').textContent = avg + '%';
+
+    const tbody = document.getElementById('project-table');
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty">No projects match this filter.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(p => `
+      <tr>
+        <td style="font-weight:600">${p.name}</td>
+        <td style="color:#666">${p.owner}</td>
+        <td class="${isOverdue(p.deadline, p.status) ? 'overdue' : ''}">
+          ${formatDate(p.deadline)}${isOverdue(p.deadline, p.status) ? ' ⚠' : ''}
+        </td>
+        <td>${statusBadge(p.status)}</td>
+        <td>${riskBadge(p.risk)}</td>
+        <td>
+          <div class="pbar"><div class="pbar-fill ${pctClass(p.pct)}" style="width:${p.pct}%"></div></div>
+          <div class="pct-lbl">${p.pct}%</div>
+        </td>
+        <td><button class="btn-del-row" onclick="deleteProject(${p.id})">Remove</button></td>
+      </tr>
+    `).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
